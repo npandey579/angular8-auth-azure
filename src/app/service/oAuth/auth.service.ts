@@ -4,6 +4,7 @@ import { Client } from '@microsoft/microsoft-graph-client';
 import { AlertsService } from '../alerts.service';
 import { OAuthSettings } from './oAuth';
 import { User } from './user';
+import { LocalStorageService } from '../state/local-storage.service';
 
 @Injectable({
   providedIn: 'root'
@@ -14,7 +15,8 @@ export class AuthService {
 
   constructor(
     private msalService: MsalService,
-    private alertsService: AlertsService) {
+    private alertsService: AlertsService,
+    private messageService: LocalStorageService) {
 
     this.authenticated = this.msalService.getUser() != null;
     this.getUser().then((user) => {this.user = user});
@@ -31,6 +33,7 @@ export class AuthService {
     if (result) {
       this.authenticated = true;
       this.user = await this.getUser();
+      this.messageService.sendMessage(this.user.displayName);
     }
   }
 
@@ -39,6 +42,7 @@ export class AuthService {
     this.msalService.logout();
     this.user = null;
     this.authenticated = false;
+    this.messageService.clearMessages();
   }
 
   // Silently request an access token
